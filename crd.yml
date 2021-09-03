@@ -1,0 +1,32 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: nextclouds.hamk.fi
+spec:
+  group: hamk.fi
+  versions:
+    - name: v1 # Resurssin versio
+      served: true # Resurssi voidaan poistaa käytöstä
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                version:
+                  type: string
+                domain:
+                  type: string
+              x-kubernetes-preserve-unknown-fields: true  
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true # kopf voi lisätä status määritteitä
+  scope: Namespaced # Resurssi on nimiavaruus kohtainen
+  names:
+    plural: nextclouds
+    singular: nextcloud
+    kind: Nextcloud # Resurssin laji, jota käytetään resurssin määrittelyssä
+    shortNames: # Lyhenne, jota resurssista voidaan käyttää esimerkiksi kubectl työkalun kanssa
+    - nc

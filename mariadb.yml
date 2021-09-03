@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{name}-db-pvc"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "{name}-db-secrets"
+type: Opaque
+data:
+  MYSQL_DATABASE: "{name}"
+  MYSQL_USER: "{name}"
+  MYSQL_PASSWORD: "${mysql_password}"
+  MYSQL_ROOT_PASSWORD: "${mysql_root_password}"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: "{name}-db"
+  name: "{name}-db"
+spec:
+  selector:
+    matchLabels:
+      component: "{name}-db"
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        component: "{name}-db"
+    spec:
+      containers:
+        - name: "{name}-db"
+          image: mariadb:latest
+          ports:
+            - containerPort: 3306
+          args:
+            - --transaction-isolation=READ-COMMITTED
+            - --binlog-format=ROW
+            - --max-connections=1000
+          env:
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  key: MYSQL_DATABASE
+                  name: "{name}-db-secrets"
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: MYSQL_PASSWORD
+                  name: "{name}-db-secrets"
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: MYSQL_ROOT_PASSWORD
+                  name: "{name}-db-secrets"
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  key: MYSQL_USER
+                  name: "{name}-db-secrets"
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: "{name}-db-persistent-storage"
+      restartPolicy: Always
+      volumes:
+        - name: "{name}-db-persistent-storage"
+          persistentVolumeClaim:
+            claimName: "{name}-db-pvc"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{name}-db"
+  labels:
+    component: "{name}-db"
+spec:
+  ports:
+    - port: 3306
+  selector:
+    component: "{name}-db"

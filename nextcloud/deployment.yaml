@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: "{name}-nextcloud"
+  name: "{name}-nextcloud"
+spec:
+  selector:
+    matchLabels:
+      app: "{name}-nextcloud"
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: "{name}-nextcloud"
+    spec:
+      containers:
+        - image: nextcloud:{version}
+          imagePullPolicy: Always
+          name: nextcloud
+          ports:
+            - containerPort: 80
+          env:
+            - name: MYSQL_HOST
+              value: "{name}-db"
+            - name: MYSQL_DATABASE
+              value: "{name}"
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: MYSQL_PASSWORD
+                  name: "{name}-db-secrets"
+            - name: MYSQL_USER
+              value: "{name}"
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: app-persistent-storage
+      restartPolicy: Always
+      volumes:
+        - name: app-persistent-storage
+          persistentVolumeClaim:
+            claimName: "{name}-nextcloud-pvc"

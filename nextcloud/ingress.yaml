@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: "{name}-nextcloud-ingress"
+spec:
+  rules:
+    - host: "{domain}"
+      http:
+        paths:
+          - backend:
+              serviceName: "{name}-nextcloud"
+              servicePort: 80

@@ -1,0 +1,7 @@
+apiVersion: hamk.fi/v1
+kind: Nextcloud
+metadata:
+  name: oppi
+spec:
+  version: "20"
+  domain: testi.hamk.fi
